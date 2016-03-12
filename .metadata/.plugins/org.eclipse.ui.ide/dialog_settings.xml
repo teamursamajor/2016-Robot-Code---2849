@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="ExternalProjectImportWizard">
+		<item value="false" key="WizardProjectsImportPage.STORE_NESTED_PROJECTS"/>
+		<item value="true" key="WizardProjectsImportPage.STORE_COPY_PROJECT_ID"/>
+		<item value="false" key="WizardProjectsImportPage.STORE_ARCHIVE_SELECTED"/>
+		<list key="WizardProjectsImportPage.STORE_DIRECTORIES">
+			<item value="C:\Users\Charlie\Documents\2016-Robot-Code---2849"/>
+			<item value="C:\Users\teamursamajor\Downloads\Backspac_&amp;#039;s 2016 Drive Code Prototype (1)\Backspac_&apos;s 2016 Drive Code Prototype"/>
+			<item value="C:\Users\teamursamajor\Google Drive\Robot Code\Git\2016\RobotTester"/>
+			<item value="C:\Users\teamursamajor\Google Drive\Robot Code\Git\2016\Vision"/>
+			<item value="C:\Users\teamursamajor\Google Drive\Robot Code\Git\2016\Backspac_&apos;s super mega Drive Code kappa"/>
+			<item value="C:\Users\teamursamajor\Google Drive\Robot Code\Git\2016\Backspac_&apos;s Super Cool DRIVE CODE (plz work PogChamp)"/>
+		</list>
+		<list key="WizardProjectsImportPage.STORE_ARCHIVES">
+			<item value=""/>
+		</list>
+	</section>
+	<section name="NewWizardAction">
+		<item value="edu.wpi.first.wpilib.plugins.java.wizards.examples.ExampleWizard" key="NewWizardSelectionPage.STORE_SELECTED_ID"/>
+		<list key="NewWizardSelectionPage.STORE_EXPANDED_CATEGORIES_ID">
+			<item value="org.eclipse.jdt.ui.java"/>
+			<item value="edu.wpi.first.wpilib.plugins.java"/>
+			<item value="org.eclipse.ui.Examples"/>
+		</list>
+	</section>
+</section>

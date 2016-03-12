@@ -1,0 +1,53 @@
+package application;
+
+import java.io.ByteArrayInputStream;
+
+import org.opencv.core.MatOfByte;
+
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.tables.ITable;
+import edu.wpi.first.wpilibj.tables.ITableListener;
+import javafx.application.Application;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
+
+public class Main extends Application{
+
+	@FXML
+	public static ImageView WebcamViewer;
+	
+	static NetworkTable cameraTable;
+
+	@Override
+	public void start(Stage primaryStage) {
+		try {
+			Parent root = FXMLLoader.load(getClass().getResource("DashboardFXML.fxml"));
+			Scene scene = new Scene(root, 400, 400);
+			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		NetworkTable.setIPAddress("roboRIO-2849-FRC.local");
+		cameraTable = NetworkTable.getTable("LiveWindow");
+		System.out.println(cameraTable.getKeys());
+//		System.out.println(cameraTable.getRaw("LVEnabled"));
+		cameraTable.addTableListener("feed", new ITableListener() {
+			@Override
+			public void valueChanged(ITable source, String key, Object value, boolean isNew) {
+				System.out.println("changed");
+				WebcamViewer.setImage(new Image(new ByteArrayInputStream(((MatOfByte) value).toArray())));
+			}				
+		}, true);
+		launch(args);
+	}
+}

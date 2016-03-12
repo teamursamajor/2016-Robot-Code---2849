@@ -1,0 +1,82 @@
+package application;
+
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+public class PictureClient implements Runnable {
+
+	boolean running;
+
+	int state;
+
+	Socket client;
+
+	DataOutputStream out;
+
+	DataInputStream in;
+
+	ImageView imageViewer;
+
+	byte[] byteArray = new byte[1000000];
+
+	int port;
+
+	public PictureClient(ImageView image, int port) {
+		imageViewer = image;
+		this.port = port;
+	}
+
+	@Override
+	public void run() {
+		running = true;
+		state = 0;
+		while (running) {
+			switch (state) {
+			case 0:
+				try {
+					client = new Socket();
+					client.connect(new InetSocketAddress("10.28.49.21", port), 5000);
+					if (client.isConnected()) System.out.println("connected");
+					out = new DataOutputStream(client.getOutputStream());
+					in = new DataInputStream(client.getInputStream());
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					if (client.isConnected()) state++;
+					else System.out.println("not connected");
+				}
+				break;
+
+			case 1:
+				try {
+					if (in.available() > 0) {
+						imageViewer.setImage(getImageFromBytes(in));
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+			}
+			System.out.println(state);
+		}
+	}
+	
+	public Image getImageFromBytes(DataInputStream stream) throws IOException {
+		byte[] bytes = new byte[stream.readInt()];
+		stream.readFully(bytes);
+		return new Image(new ByteArrayInputStream(bytes));
+	}
+
+	public void stop() {
+		System.out.println("stopping");
+		running = false;
+	}
+
+}

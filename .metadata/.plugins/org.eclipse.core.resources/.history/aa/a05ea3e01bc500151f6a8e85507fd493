@@ -1,0 +1,75 @@
+package application;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+public class PictureClient implements Runnable {
+
+	boolean running;
+
+	int state;
+
+	Socket client;
+
+	OutputStream out;
+
+	InputStream in;
+
+	ImageView imageViewer;
+	
+	byte imageBuffer[];
+	
+	int port;
+
+	public PictureClient(ImageView image, int port) {
+		imageViewer = image;
+		this.port = port;
+	}
+
+	@Override
+	public void run() {
+		running = true;
+		state = 0;
+		while (running) {
+			switch (state) {
+			case 0:
+				try {
+					client = new Socket("roboRIO-2849-FRC.local", 5800);
+					out = client.getOutputStream();
+					in = client.getInputStream();
+				} catch (IOException e) {
+					System.out.println(e.getStackTrace());
+				} finally {
+					state++;
+				}
+				break;
+
+			case 1:
+				try {
+					in.read(imageBuffer);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				imageViewer.setImage(new Image(new ByteArrayInputStream(imageBuffer)));
+				try {
+					out.write(-1);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				break;
+			}
+		}
+	}
+	
+	public void stop() {
+		running = false;
+	}
+
+}

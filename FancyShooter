@@ -1,0 +1,86 @@
+package org.usfirst.frc.team2849.robot;
+
+import edu.wpi.first.wpilibj.Talon;
+
+public class Shooter {
+	private static long startTime = 0;
+	private static long shootTime = 0;
+	private static Talon Shoot = new Talon(1);
+	private static boolean prevShiftState;
+	private static boolean xLinedUp;
+	private static boolean yLinedUp;
+
+	public static void shootBall(double Shootpower) {
+		if (startTime == 0) {
+			Intake.intakeBall(-0.3);
+			startTime = System.currentTimeMillis();
+		}
+		if (System.currentTimeMillis() - startTime > 0.1) {
+			Shoot.set(Shootpower);
+		}
+		if (System.currentTimeMillis() - startTime > 2.1 && System.currentTimeMillis() - startTime < 2.3)
+			Intake.intakeBall(0.3);// spin the motor to push ball into spinning
+									// motor
+		if (System.currentTimeMillis() - startTime > 2.3)
+			Shoot.set(0.0);
+		startTime = 0;
+	}
+	public static boolean fancyShoot() {
+//		Vision Check (T/F), if true, continue, else exit method
+		DriveCode.lock(1);
+		prevShiftState = DriveCode.getShiftState();
+		if(/*Vision Code Checking for y*/ >= 5){
+			if (shootTime ==0){
+				shootTime = System.currentTimeMillis();
+			}
+			DriveCode.drive(0.4, 0.4);
+			if (System.currentTimeMillis() - shootTime > 0.5){
+				DriveCode.setShiftState(false);
+				DriveCode.drive(0, 0);
+				shootTime=0;
+			}
+		}
+		else if(/*Vision Code Checking for y*/ <= -5){
+			if (shootTime ==0){
+				shootTime = System.currentTimeMillis();
+			}
+			DriveCode.drive(-0.4, -0.4);
+			if (System.currentTimeMillis() - shootTime > 0.5){
+				DriveCode.setShiftState(false);
+				DriveCode.drive(0, 0);
+				shootTime=0;
+			}
+		}
+		if(/*Vision Code Checking for x*/ >= 5){
+			if (shootTime ==0){
+				shootTime = System.currentTimeMillis();
+			}
+			DriveCode.drive(-0.1, 0.1);
+			if (System.currentTimeMillis() - shootTime > 0.25){
+				DriveCode.setShiftState(false);
+				DriveCode.drive(0, 0);
+				shootTime=0;
+			}
+		}
+		else if(/*Vision Code Checking for x*/ <= -5){
+			if (shootTime ==0){
+				shootTime = System.currentTimeMillis();
+			}
+			DriveCode.drive(0.1, -0.1);
+			if (System.currentTimeMillis() - shootTime > 0.25){
+				DriveCode.setShiftState(false);
+				DriveCode.drive(0, 0);
+				shootTime=0;
+			}
+		}
+	if(/*Vision Code Checking for x*/ <= -5 && /*Vision Code Checking for x*/ >= 5 && /*Vision Code Checking for y*/ <= -5 && /*Vision Code Checking for y*/ >= 5){
+		shootBall(1.0);
+		DriveCode.unlock(1);
+		DriveCode.setShiftState(prevShiftState);
+		Robot.darkVoodooMagiks = false;
+	}		
+		
+	}
+	
+
+}

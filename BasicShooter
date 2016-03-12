@@ -1,0 +1,18 @@
+package org.usfirst.frc.team2849.robot;
+import edu.wpi.first.wpilibj.Talon;
+public class Shooter{
+	private static long startTime = 0;
+	private static Talon Shoot = new Talon(1);
+	public static boolean shootBall(double Shootpower){
+		if (startTime==0){
+			Intake.intakeBall(-0.3);
+			startTime=System.currentTimeMillis();}
+		if (System.currentTimeMillis()-startTime>0.1){
+			Shoot.set(Shootpower);}
+		if (System.currentTimeMillis()-startTime> 1.6 && System.currentTimeMillis()-startTime<1.8)
+			Intake.intakeBall(0.3);//spin the motor to push ball into spinning motor
+		if (System.currentTimeMillis()-startTime> 1.8)
+			Shoot.set(0.0);
+			startTime=0;
+		}
+	}

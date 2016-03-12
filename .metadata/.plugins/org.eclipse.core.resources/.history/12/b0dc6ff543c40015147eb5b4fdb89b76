@@ -1,0 +1,201 @@
+package org.usfirst.frc.team2849.robot.vision;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
+
+import edu.wpi.first.wpilibj.Solenoid;
+
+public class Vision {
+	/**
+	 * Super cool vision code by Punchline Thanks to Nate for making it not
+	 * horrible Thanks to Abhi for commenting "Abhi was here" a few times I'd
+	 * like to thank the Academy, my family, friends, and Director Joss Whedon
+	 * Vision will be coming back in "Vision II: Electric Boogaloo" in theaters
+	 * January 2017
+	 */
+	static Solenoid ledRing;
+	static int runCounter;
+	static long startTime;
+	static int stage;
+	static Mat singleChannelLed = new Mat();
+	static Mat singleChannelNoLed = new Mat();
+	static Point center;
+	static double[] centerDist = new double[2];
+	static List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+	static Mat hierarchy = new Mat();
+	static double maxArea;
+	static int maxContour;
+	static double area;
+	static int index;
+	public static boolean done;
+	static long runTime;
+	static long wholeTime;
+	
+	public static void init() {
+		WebcamStreamer.start();
+		ledRing = new Solenoid(0);
+		runCounter = 0;
+		stage = 0;
+		done = false;
+	}
+
+	public static double[] processImage() {
+		done = false;
+		switch (stage) {
+		case 0:
+			wholeTime = System.currentTimeMillis();
+			runTime = System.currentTimeMillis();
+			runCounter++;
+			ledRing.set(false);
+			stage++;
+			System.out.println("Finished Case 0 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 1:
+			singleChannelNoLed = createSingleChannel(WebcamStreamer.getImage(), 2);
+			ledRing.set(true);
+			startTime = System.currentTimeMillis();
+			Highgui.imwrite("/home/lvuser/noLed" + runCounter + ".jpg", singleChannelNoLed);
+			stage++;
+			System.out.println("Finished Case 1 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 2:
+			if (System.currentTimeMillis() - startTime >= 100) {
+				stage++;
+				System.out.println("Finished Case 2 in " + (System.currentTimeMillis() - runTime));
+				runTime = System.currentTimeMillis();
+			}
+			break;
+
+		case 3:
+			singleChannelLed = createSingleChannel(WebcamStreamer.getImage(), 2);
+			ledRing.set(false);
+			Highgui.imwrite("/home/lvuser/led" + runCounter + ".jpg", singleChannelLed);
+			stage++;
+			System.out.println("Finished Case 3 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 4:
+			Core.subtract(singleChannelLed, singleChannelNoLed, singleChannelLed);
+			Imgproc.Canny(singleChannelLed, singleChannelLed, 200, 255);
+			stage++;
+			System.out.println("Finished Case 4 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 5:
+			Imgproc.findContours(singleChannelLed, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_NONE);
+			Imgproc.cvtColor(singleChannelLed, singleChannelLed, Imgproc.COLOR_GRAY2BGR);
+			stage++;
+			System.out.println("Finished Case 5 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 6:
+			maxArea = -1;
+			maxContour = -1;
+			area = 0;
+			index = 0;
+			stage++;
+			System.out.println("Finished Case 6 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 7:
+			if (contours.size() != 0) {
+				area = Imgproc.contourArea(contours.get(index));
+				if (area > maxArea) {
+					maxArea = area;
+					maxContour = index;
+				}
+				index++;
+				if (index >= contours.size())
+					stage++;
+					System.out.println("Finished Case 7 in " + (System.currentTimeMillis() - runTime));
+					runTime = System.currentTimeMillis();
+			} else {
+				System.out.println("No contours found");
+				stage = 0;
+				done = true;
+			}
+			break;
+
+		case 8:
+			Imgproc.drawContours(singleChannelLed, contours, maxContour, new Scalar(0, 0, 255), 1);
+			if (maxArea > 2000) {
+				Moments moments = Imgproc.moments(contours.get(maxContour));
+				center = new Point(moments.get_m10() / moments.get_m00(), moments.get_m01() / moments.get_m00());
+				Core.circle(singleChannelLed, center, 5, new Scalar(0, 0, 255), 1);
+			} else {
+				System.out.println("Large area not found");
+				stage = 0;
+				done = true;
+			}
+			Highgui.imwrite("/home/lvuser/out" + runCounter + ".jpg", singleChannelLed);
+			stage++;
+			System.out.println("Finished Case 8 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 9:
+			centerDist[0] = center.x - (WebcamStreamer.WIDTH / 2);
+			centerDist[1] = -(center.y - (WebcamStreamer.HEIGHT / 2));
+			stage++;
+			System.out.println("Finished Case 9 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+
+		case 10:
+			System.out.println("Vision: Done in " + (System.currentTimeMillis() - wholeTime) + " milliseconds");
+			contours.clear();
+			stage = 0;
+			done = true;
+			System.out.println("Finished Case 10 in " + (System.currentTimeMillis() - runTime));
+			runTime = System.currentTimeMillis();
+			break;
+		}
+		return centerDist;
+
+	}
+
+	public static Mat[] takePictures() {
+		Mat led = new Mat();
+		Mat noled = new Mat();
+		ledRing.set(false);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		noled = WebcamStreamer.getImage();
+		ledRing.set(true);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		led = WebcamStreamer.getImage();
+		ledRing.set(false);
+		Mat[] images = { led, noled };
+		return images;
+	}
+
+	public static Mat createSingleChannel(Mat m, int channel) {
+		List<Mat> channels = new ArrayList<Mat>();
+		Core.split(m, channels);
+		return channels.get(channel - 1);
+	}
+}

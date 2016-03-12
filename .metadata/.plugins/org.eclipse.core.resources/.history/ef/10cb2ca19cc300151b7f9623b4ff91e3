@@ -1,0 +1,164 @@
+package org.usfirst.frc.team2849.robot.vision;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
+
+import edu.wpi.first.wpilibj.Solenoid;
+
+public class Vision {
+	/**
+	 * Super cool vision code by Punchline Thanks to Nate for making it not
+	 * horrible Thanks to Abhi for commenting "Abhi was here" a few times I'd
+	 * like to thank the Academy, my family, friends, and Director Joss Whedon
+	 * Vision will be coming back in "Vision II: Electric Boogaloo" in theaters
+	 * January 2017
+	 */
+	static Solenoid ledRing;
+	static int runCounter;
+	static long startTime;
+	static int stage;
+	static Mat singleChannelLed = new Mat();
+	static Mat singleChannelNoLed = new Mat();
+	static Point center;
+	static List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+	static Mat hierarchy = new Mat();
+	static double maxArea;
+	static int maxContour;
+	static double area;
+	static int index;
+	static boolean done;
+	static long runTime;
+
+	public static void init() {
+		WebcamStreamer.start();
+		ledRing = new Solenoid(0);
+		runCounter = 0;
+		stage = 0;
+		done = false;
+	}
+	
+	public static boolean processImage() {
+		done = false;
+		switch (stage) {
+		case 0:
+			runTime = System.currentTimeMillis();
+			runCounter++;
+			ledRing.set(false);
+			stage++;
+			break;
+
+		case 1:
+			singleChannelNoLed = createSingleChannel(WebcamStreamer.getImage(), 2);
+			ledRing.set(true);
+			startTime = System.currentTimeMillis();
+			Highgui.imwrite("/home/lvuser/noLed" + runCounter + ".jpg", singleChannelNoLed);
+			stage++;
+			break;
+
+		case 2:
+			if (System.currentTimeMillis() - startTime >= 500)
+				stage++;
+			break;
+
+		case 3:
+			singleChannelLed = createSingleChannel(WebcamStreamer.getImage(), 2);
+			ledRing.set(false);
+			Highgui.imwrite("/home/lvuser/led" + runCounter + ".jpg", singleChannelLed);
+			stage++;
+			break;
+
+		case 4:
+			Core.subtract(singleChannelLed, singleChannelNoLed, singleChannelLed);
+			Imgproc.Canny(singleChannelLed, singleChannelLed, 200, 255);
+			stage++;
+			break;
+
+		case 5:
+			Imgproc.findContours(singleChannelLed, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_NONE);
+			Imgproc.cvtColor(singleChannelLed, singleChannelLed, Imgproc.COLOR_GRAY2BGR);
+			stage++;
+			break;
+
+		case 6:
+			maxArea = -1;
+			maxContour = -1;
+			area = 0;
+			index = 0;
+			stage++;
+			break;
+
+		case 7:
+			area = Imgproc.contourArea(contours.get(index));
+			if (area > maxArea) {
+				maxArea = area;
+				maxContour = index;
+			}
+			index++;
+			if (index >= contours.size())
+				stage++;
+			break;
+
+		case 8:
+			if (contours.size() != 0) {
+				Imgproc.drawContours(singleChannelLed, contours, maxContour, new Scalar(0, 0, 255), 1);
+				if (maxArea > 2000) {
+					Moments moments = Imgproc.moments(contours.get(maxContour));
+					center = new Point(moments.get_m10() / moments.get_m00(), moments.get_m01() / moments.get_m00());
+					Core.circle(singleChannelLed,
+							center), 5,
+							new Scalar(0, 0, 255), 1);
+				} else {
+					System.out.println("Large area not found");
+				}
+			}
+			Highgui.imwrite("/home/lvuser/out" + runCounter + ".jpg", singleChannelLed);
+			stage++;
+		case 9:
+			
+			System.out.println("Vision: Done in " + (System.currentTimeMillis() - runTime) + " milliseconds");
+			contours.clear();
+			stage = 0;
+			done = true;
+			break;
+		}
+		return done;
+
+	}
+
+	public static Mat[] takePictures() {
+		Mat led = new Mat();
+		Mat noled = new Mat();
+		ledRing.set(false);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		noled = WebcamStreamer.getImage();
+		ledRing.set(true);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		led = WebcamStreamer.getImage();
+		ledRing.set(false);
+		Mat[] images = { led, noled };
+		return images;
+	}
+
+	public static Mat createSingleChannel(Mat m, int channel) {
+		List<Mat> channels = new ArrayList<Mat>();
+		Core.split(m, channels);
+		return channels.get(channel - 1);
+	}
+}

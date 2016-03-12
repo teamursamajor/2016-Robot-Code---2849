@@ -1,0 +1,82 @@
+package application;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.highgui.Highgui;
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+public class PictureClient implements Runnable {
+
+	boolean running;
+
+	int state;
+
+	Socket client;
+
+	ObjectOutputStream out;
+
+	ObjectInputStream in;
+
+	ImageView imageViewer;
+
+	byte[] byteArray = new byte[1000000];
+
+	int port;
+
+	public PictureClient(ImageView image, int port) {
+		imageViewer = image;
+		this.port = port;
+	}
+
+	@Override
+	public void run() {
+		running = true;
+		state = 0;
+		while (running) {
+			switch (state) {
+			case 0:
+				try {
+					client = new Socket();
+					client.connect(new InetSocketAddress("10.28.49.21", port), 5000);
+					if (client.isConnected()) System.out.println("connected");
+					out = new ObjectOutputStream(client.getOutputStream());
+					in = new ObjectInputStream(client.getInputStream());
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					if (client.isConnected()) state++;
+					else System.out.println("not connected");
+				}
+				break;
+
+			case 1:
+				try {
+					if (in.available() > 0) {
+						byteArray = new byte[in.readInt()];
+						System.out.println(byteArray.length);
+						in.read(byteArray);
+						imageViewer.setImage(new Image(new ByteArrayInputStream(byteArray)));
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+			}
+			System.out.println(state);
+		}
+	}
+
+	public void stop() {
+		running = false;
+	}
+
+}

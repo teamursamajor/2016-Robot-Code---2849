@@ -1,0 +1,53 @@
+package application;
+
+import org.opencv.core.Core;
+
+import javafx.application.Application;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+
+public class Main extends Application {
+
+	public ImageView webcamViewer = new ImageView();
+
+	@Override
+	public void start(Stage primaryStage) {
+		try {
+			VBox root = FXMLLoader.load(getClass().getResource("DashboardFXML.fxml"));
+			root.getChildren().add(webcamViewer);
+			Scene scene = new Scene(root, 400, 400);
+			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PictureClient picClient = new PictureClient(webcamViewer, 8500);
+		Thread pictureThread = new Thread(picClient);
+		pictureThread.start();
+		primaryStage.onCloseRequestProperty().addListener(new ChangeListener<EventHandler<WindowEvent>>() {
+			@Override
+			public void changed(ObservableValue<? extends EventHandler<WindowEvent>> arg0,
+					EventHandler<WindowEvent> arg1, EventHandler<WindowEvent> arg2) {
+				System.out.println("dying");
+				picClient.stop();
+			}
+		});
+	}
+
+	public static void main(String[] args) {
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+		launch(args);
+	}
+}

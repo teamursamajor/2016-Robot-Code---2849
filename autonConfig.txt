@@ -1,0 +1,38 @@
+#Autonomous config
+--> _____
+
+Config Style: 
+[position] [name (no spaces, each word capitalized)] [Shooting?]
+
+Positions:
+|------|------|------|------|------|Secret |
+|  1   |  2   |  3   |  4   |  5   |Passage|
+|------|------|------|------|------|_______|
+
+Defenses:
+|-----------------------|
+|	Low Bar		|
+|-----------------------|
+|Group A:		|
+|Cheval De Frise	|
+|Portcullis		|
+|-----------------------|
+|Group B:		|
+|Ramparts		|
+|Moat			|
+|-----------------------|
+|Group C:		|
+|Sally Port		|
+|Drawbridge		|
+|-----------------------|
+|Group D:		|
+|Rock Wall		|
+|Rough Terrain		|
+|-----------------------|
+
+Examples:
+--> 1LowBarN
+--> 4ChevalDeFriseY
+--> 3RockWallY
+--> 5PortcullisY
+--> 2MoatY
