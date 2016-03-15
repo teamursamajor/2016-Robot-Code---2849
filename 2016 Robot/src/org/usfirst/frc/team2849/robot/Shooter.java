@@ -16,6 +16,8 @@ public class Shooter {
 	private static final int SPINUP_TIME = 1000;
 	private static final int SHOOT_TIME = 1000;
 
+	public static double SHOOT_POWER = .9;
+	
 	// Motors for shooter
 	private static Talon intakeWheel = new Talon(4);
 	private static Talon shooterWheel = new Talon(5);
@@ -102,9 +104,13 @@ public class Shooter {
 				shooterStage++;
 				intakeWheel.set(0);
 			}
+			if (System.currentTimeMillis() - startTime > 4000) {
+				intakeWheel.set(0);
+				shooterStage = 6;
+			}
 			break;
 		case 2:
-			shooterWheel.set(1); // speed up shooter
+			shooterWheel.set(SHOOT_POWER); // speed up shooter
 			startTime = System.currentTimeMillis();
 			shooterStage++;
 			break;
@@ -127,6 +133,7 @@ public class Shooter {
 			shootDone = true;
 			Drive.unlock(DriveLock.SHOOTER);
 			shooterStage = 0;
+			Drive.shiftGear(false);
 			break;
 		}
 		return shootDone;

@@ -28,7 +28,7 @@ public class Drive {
 	private static Solenoid shifter = new Solenoid(7);
 
 	// Current state of shifting
-	private static boolean shiftState = false; // high is true, low is false
+	private static boolean shiftState = false; // high is false, low is true
 	
 	// return state of runDriveDist
 	private static boolean toReturn = false;
@@ -63,9 +63,9 @@ public class Drive {
 	 * @return Number of inches moved since reset
 	 */
 	public static double getLEnc() {
-		if (shiftState == false)
+		if (shiftState == true)
 			return 0.16702391225 * lEnc.getDistance();
-		return 0.16702391225 * lEnc.getDistance() / LOW_TO_HIGH_RATIO;
+		return 0.16702391225 * lEnc.getDistance() * LOW_TO_HIGH_RATIO;
 	}
 
 	/**
@@ -74,9 +74,9 @@ public class Drive {
 	 * @return Number of inches moved since reset
 	 */
 	public static double getREnc() {
-		if (shiftState == false)
+		if (shiftState == true)
 			return -0.0677124478 * rEnc.getDistance();
-		return -0.0677124478 * rEnc.getDistance() / LOW_TO_HIGH_RATIO;
+		return -0.0677124478 * rEnc.getDistance() * LOW_TO_HIGH_RATIO;
 	}
 
 	/**
@@ -144,12 +144,12 @@ public class Drive {
 	 * Shifts the gear to the input value
 	 * 
 	 * @param shiftToHigh
-	 *            True - shifts to high gear <br>
-	 *            False - shifts to low gear
+	 *            False - shifts to high gear <br>
+	 *            True - shifts to low gear
 	 */
-	public static void shiftGear(boolean shiftToHigh) {
-		shifter.set(shiftToHigh);
-		shiftState = shiftToHigh;
+	public static void shiftGear(boolean shiftToLow) {
+		shifter.set(shiftToLow);
+		shiftState = shiftToLow;
 	}
 
 	/**

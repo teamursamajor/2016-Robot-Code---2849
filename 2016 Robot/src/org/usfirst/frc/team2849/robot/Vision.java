@@ -69,7 +69,7 @@ public class Vision implements Runnable {
 
 	// State machine variables
 	private int visionState;
-	private int alignmentState;
+	public int alignmentState;
 
 	// Timing of vision 
 	private long wholeTime;
@@ -85,14 +85,14 @@ public class Vision implements Runnable {
 	private final int AREA_THRESH = 800;
 	private final double ANGLE_TO_ENCODER = 24 * Math.PI;
 	private final double CAM_TO_CENTER = 12.5;
-	private final double OPTIMAL_SHOOTING_DIST = 92; // in inches!!!
+	private final double OPTIMAL_SHOOTING_DIST = 66; // in inches!!!
 	//	private final double X_TARGET_MIN = -50;
 	//	private final double X_TARGET_MAX = 50;
 	//	private final double Y_TARGET_MIN = -50;
 	//	private final double Y_TARGET_MAX = 50;
 	private final double MAX_DISTANCE = 4;
 //	private final double MAX_ANGLE = 10;
-	private final double MAX_ANGLE = 10;
+	private final double MAX_ANGLE = 8;
 	private final double X_OFFSET = 0;
 
 	private int runCounter = 0;
@@ -330,6 +330,7 @@ public class Vision implements Runnable {
 			if (button) {
 				failCounter = 0;
 				alignmentState++;
+				Drive.shiftGear(true);
 			}
 			break;
 		case 1:
@@ -353,7 +354,7 @@ public class Vision implements Runnable {
 					}
 				} else {
 					turnAngle = findAngle(centerDist.x, centerDist.y);
-					alignmentState++;
+					alignmentState=4;
 				}
 			}
 			break;
@@ -368,7 +369,8 @@ public class Vision implements Runnable {
 			double distToGo = findDistance(centerDist.y) - OPTIMAL_SHOOTING_DIST;
 			if (Drive.runDriveDist(-.9 * Math.signum(distToGo), -.9 * Math.signum(distToGo), distToGo, distToGo,
 					DriveLock.AUTOALIGN)) {
-				alignmentState++;
+				System.out.println(distToGo);
+				alignmentState=7;
 				sleep(500);
 			}
 			break;
@@ -469,13 +471,13 @@ public class Vision implements Runnable {
 			IT = distance*Math.tan(camAngle) + CAM_TO_CENTER;
 			System.out.println("Case 1");
 		} else { 
- 			if (distance*Math.tan(camAngle) <= CAM_TO_CENTER) {
-				IT = CAM_TO_CENTER - distance*Math.tan(camAngle);
-				System.out.println("Case 2");
-			} else {
+// 			if (distance*Math.tan(camAngle) <= CAM_TO_CENTER) {
+//				IT = CAM_TO_CENTER - distance*Math.tan(camAngle);
+//				System.out.println("Case 2");
+//			} else {
 				IT = distance*Math.tan(camAngle) - CAM_TO_CENTER;
 				System.out.println("Case 3");
-			}
+//			}
 		}
 		return -Math.toDegrees(Math.atan(IT/distance));
 	}

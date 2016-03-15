@@ -2,6 +2,7 @@ package org.usfirst.frc.team2849.robot;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -69,8 +70,8 @@ public class StreamSupplier implements Runnable {
 	private void nextFeed() {
 		if (currentWebcam < (webcams.size() - 1))
 			currentWebcam++;
-		if (currentWebcam == 2) Drive.inverse = true;
-		else Drive.inverse = false;
+//		if (currentWebcam == 2) Drive.inverse = true;
+//		else Drive.inverse = false;
 	}
 
 	/**
@@ -79,8 +80,8 @@ public class StreamSupplier implements Runnable {
 	private void previousFeed() {
 		if (currentWebcam > 0)
 			currentWebcam--;
-		if (currentWebcam == 2) Drive.inverse = true;
-		else Drive.inverse = false;
+//		if (currentWebcam == 2) Drive.inverse = true;
+//		else Drive.inverse = false;
 	}
 
 	/**
@@ -123,9 +124,10 @@ public class StreamSupplier implements Runnable {
 			switch (state) {
 			case 0:
 				try {
-					server = new ServerSocket();
-					System.out.println("Trying to assign to: " + new InetSocketAddress("roborio-2849-frc.local", port));
-					server.bind(new InetSocketAddress("roborio-2849-frc.local", port));
+					server = new ServerSocket(5805);
+//					System.out.println("Local Address: "+InetAddress.getLocalHost());
+//					System.out.println("Trying to assign to: " + new InetSocketAddress("roborio-2849-frc.local", port));
+//					server.bind(new InetSocketAddress("roborio-2849-frc.local", port));
 					System.out.println("Opening socket on: " + server.getInetAddress() + ":" + server.getLocalPort());
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -141,6 +143,7 @@ public class StreamSupplier implements Runnable {
 					out = new DataOutputStream(socket.getOutputStream());
 					state++;
 				} catch (IOException e) {
+//					System.out.println("Accepting failed");
 				}
 				break;
 

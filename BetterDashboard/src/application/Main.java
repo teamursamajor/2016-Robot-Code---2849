@@ -29,7 +29,7 @@ public class Main extends Application {
 		webcamViewer.setCache(true);
 		webcamViewer.setFitWidth(640);
 		webcamViewer.setPreserveRatio(true);
-		picClient = new PictureClient(webcamViewer, 8500);
+		picClient = new PictureClient(webcamViewer, 5805);
 		Thread pictureThread = new Thread(picClient);
 		pictureThread.start();
 	}

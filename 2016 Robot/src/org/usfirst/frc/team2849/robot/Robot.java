@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj.IterativeRobot;
  */
 public class Robot extends IterativeRobot {
 
+	boolean shootToggle = true;
+	
 //	// Timing
 	@SuppressWarnings("unused")
 	private long timer;
@@ -34,11 +36,16 @@ public class Robot extends IterativeRobot {
 		
 	}
 
+	public void autonomousInit(){
+		Autonomous.autonomousInit();
+	}
+	
 	/**
 	 * Runs autonomous periodic tasks
 	 */
 	public void autonomousPeriodic() {
 		Autonomous.runAutonomous();
+		Arm.enablePID();
 	}
 
 	/**
@@ -73,6 +80,31 @@ public class Robot extends IterativeRobot {
 		vision.autoAlign(xBox.getButton(XboxController.BUTTON_B));
 		
 		vision.runVision(xBox.getButton(XboxController.BUTTON_X));
+		
+		if (xBox.getButton(XboxController.BUTTON_BACK)) {
+			Arm.printPot();
+		}
+		
+		if (xBox.getButton(XboxController.BUTTON_START)) {
+			vision.alignmentState = 7;
+			Drive.unlock(DriveLock.AUTOALIGN);
+			Drive.unlock(DriveLock.AUTONOMOUS);
+			Drive.unlock(DriveLock.SHOOTER);
+		}
+		
+		if(xBox.getPOV() == xBox.POV_LEFT && shootToggle){
+			Shooter.SHOOT_POWER -= .05;
+			shootToggle = false;
+			if(Shooter.SHOOT_POWER < 0) Shooter.SHOOT_POWER = 0;
+			System.out.println("SHOOTER POWER = " + Shooter.SHOOT_POWER);
+		} else if(xBox.getPOV() == xBox.POV_RIGHT && shootToggle){
+			Shooter.SHOOT_POWER += .05;
+			if(Shooter.SHOOT_POWER > 1) Shooter.SHOOT_POWER = 1;
+			shootToggle = false;
+			System.out.println("SHOOTER POWER = " + Shooter.SHOOT_POWER);
+		} else if(xBox.getPOV() == xBox.POV_NONE){
+			shootToggle = true;
+		}
 
 		// Allows the stream to be changed
 		stream.runStreamChanger(xBox.getButton(XboxController.BUTTON_LEFTBUMPER),

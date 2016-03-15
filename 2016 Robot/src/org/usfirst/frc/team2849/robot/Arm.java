@@ -25,7 +25,7 @@ public class Arm {
 	private static PIDController pidControl;
 
 	// PID Controller variables
-	private static final double PROPORTIONAL = .01;
+	private static final double PROPORTIONAL = .02;
 	private static final double INTEGRAL = 0;
 	private static final double DERIVATIVE = 0;
 
@@ -40,8 +40,9 @@ public class Arm {
 		pidControl = new PIDController(PROPORTIONAL, INTEGRAL, DERIVATIVE, pot, new PIDOutput() {
 			@Override
 			public void pidWrite(double output) {
-				armLeft.set(output);
-				armRight.set(output);
+//				System.out.println("PID is outputting: " + output);
+				armLeft.set(-output);
+				armRight.set(-output);
 			}
 		});
 		pidControl.setAbsoluteTolerance(.1);
@@ -72,15 +73,20 @@ public class Arm {
 	 *            Boolean for a button to signal arm should move up a position
 	 */
 	public static void runArm(boolean armDown, boolean armUp) {
+//		System.out.println("Trying to get to: " + ArmCodes.POSTITIONS[armPos]);
+//		System.out.println("Arm is at : " + pot.get());
 		switch (armState) {
 		case 0:
 			if (armDown) {
+				pidControl.setPID(.04, 0, 0);
 				armPos--;
-				if (armPos < 0)
+				if (armPos <= 0) {
 					armPos = 0;
+				}
 				pidControl.setSetpoint(ArmCodes.POSTITIONS[armPos]);
 				armState++;
 			} else if (armUp) {
+				pidControl.setPID(.02, 0, 0);
 				armPos++;
 				if (armPos > ArmCodes.POSTITIONS.length - 1)
 					armPos = ArmCodes.POSTITIONS.length - 1;
@@ -126,7 +132,7 @@ public class Arm {
 	 * Prints debug information about the potentiometer
 	 */
 	public static void printPot() {
-		System.out.println(pot.get());
+		System.out.println("Pot is at: " + pot.get());
 	}
 
 	/**
@@ -135,9 +141,10 @@ public class Arm {
 	 * @author teamursamajor
 	 */
 	public static class ArmCodes {
-		public static final double FLAT = 43;
-		public static final double PORTCULLIS = 70;
-		public static final double INSIDE_FRAME = -5;
-		public static final double[] POSTITIONS = { PORTCULLIS, FLAT, INSIDE_FRAME };
+		public static final double FLAT = 10;
+		public static final double PORTCULLIS = 0;
+		public static final double PORTCULLIS_UP = 28;
+		public static final double INSIDE_FRAME = 47;
+		public static final double[] POSTITIONS = { PORTCULLIS, FLAT, PORTCULLIS_UP, INSIDE_FRAME };
 	};
 }
