@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 /**
  * Base class which handles all robot operations
  * 
- * 
  * @author teamursamajor
  */
 public class Robot extends IterativeRobot {

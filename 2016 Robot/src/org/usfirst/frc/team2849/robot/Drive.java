@@ -29,6 +29,8 @@ public class Drive {
 
 	// Current state of shifting
 	private static boolean shiftState = false; // high is false, low is true
+	private static int numShifts = 0;
+	private static final int MAX_SHIFTS = 25;
 	
 	// return state of runDriveDist
 	private static boolean toReturn = false;
@@ -135,8 +137,10 @@ public class Drive {
 	 * @return the current state of the supershifter
 	 */
 	public static boolean shiftGear() {
+		if(numShifts >= MAX_SHIFTS) return shiftState;
 		shifter.set(!shifter.get());
 		shiftState = shifter.get();
+		System.out.println("Shifts left: " + (MAX_SHIFTS - ++numShifts));
 		return shiftState;
 	}
 
@@ -148,6 +152,8 @@ public class Drive {
 	 *            True - shifts to low gear
 	 */
 	public static void shiftGear(boolean shiftToLow) {
+		if(numShifts >= MAX_SHIFTS) return;
+		System.out.println("Shifts left: " + (MAX_SHIFTS - ++numShifts));
 		shifter.set(shiftToLow);
 		shiftState = shiftToLow;
 	}

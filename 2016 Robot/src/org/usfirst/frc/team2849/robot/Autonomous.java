@@ -3,7 +3,7 @@ package org.usfirst.frc.team2849.robot;
 import org.usfirst.frc.team2849.robot.Drive.DriveLock;
 
 public class Autonomous {
-
+	
 	private static int stage = 0;
 	private static boolean done;
 	
@@ -53,6 +53,11 @@ public class Autonomous {
 		return done;
 	}
 
+	public static double getSpeedProfileSpeed(long timeMillis){
+		timeMillis = System.currentTimeMillis() - timeMillis;
+		return (1)/(1+Math.exp(-.01*timeMillis+5));
+	}
+	
 	/**
 	 * Run periodically when crossing the ramparts
 	 */
@@ -63,9 +68,11 @@ public class Autonomous {
 			done = false;
 			Arm.toPosition(Arm.ArmCodes.INSIDE_FRAME);
 			stage++;
+			startTime = System.currentTimeMillis();
 			break;
 		case 1:
-			if(Drive.runDriveDist(-1, -1, rampartDist, rampartDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(-getSpeedProfileSpeed(startTime),	-getSpeedProfileSpeed(startTime),
+					rampartDist, rampartDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -101,7 +108,8 @@ public class Autonomous {
 			stage++;
 			break;
 		case 1:
-			if(Drive.runDriveDist(-1, -1, moatDist, moatDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(-getSpeedProfileSpeed(startTime), -getSpeedProfileSpeed(startTime),
+					moatDist, moatDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -137,7 +145,8 @@ public class Autonomous {
 			stage++;
 			break;
 		case 1:
-			if(Drive.runDriveDist(-1, -1, roughTerrainDist, roughTerrainDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(-getSpeedProfileSpeed(startTime), -getSpeedProfileSpeed(startTime),
+					roughTerrainDist, roughTerrainDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -173,7 +182,8 @@ public class Autonomous {
 			stage++;
 			break;
 		case 1:
-			if(Drive.runDriveDist(-1, -1, rockWallDist, rockWallDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(-getSpeedProfileSpeed(startTime), -getSpeedProfileSpeed(startTime),
+					rockWallDist, rockWallDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -210,7 +220,8 @@ public class Autonomous {
 			stage++;
 			break;
 		case 1:
-			if(System.currentTimeMillis() - startTime > 2000 && Drive.runDriveDist(-1, -1, lowBarDist, lowBarDist, DriveLock.AUTONOMOUS)){
+			if(System.currentTimeMillis() - startTime > 2000 && Drive.runDriveDist(-getSpeedProfileSpeed(startTime), -getSpeedProfileSpeed(startTime),
+					lowBarDist, lowBarDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -245,7 +256,8 @@ public class Autonomous {
 		case 0:
 			done = false;
 			Arm.toPosition(Arm.ArmCodes.INSIDE_FRAME);
-			if(Drive.runDriveDist(.75, .75, chevalApproachDist, chevalApproachDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(.75 * getSpeedProfileSpeed(startTime), .75 * getSpeedProfileSpeed(startTime),
+					chevalApproachDist, chevalApproachDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -254,7 +266,8 @@ public class Autonomous {
 			stage++;
 			break;
 		case 2:
-			if(Drive.runDriveDist(.75, .75, 6, 6, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(.75 * getSpeedProfileSpeed(startTime), .75 * getSpeedProfileSpeed(startTime),
+					6, 6, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -262,7 +275,8 @@ public class Autonomous {
 			Arm.toPosition(Arm.ArmCodes.INSIDE_FRAME);
 			break;
 		case 4:
-			if(Drive.runDriveDist(1, 1, chevalCrossDist, chevalCrossDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(getSpeedProfileSpeed(startTime), getSpeedProfileSpeed(startTime),
+					chevalCrossDist, chevalCrossDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -299,7 +313,8 @@ public class Autonomous {
 		case 0:
 			done = false;
 			Arm.toPosition(Arm.ArmCodes.INSIDE_FRAME);
-			if(Drive.runDriveDist(.75, .75, portcullisApproachDist, portcullisApproachDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(.75 * getSpeedProfileSpeed(startTime), .75 * getSpeedProfileSpeed(startTime),
+					portcullisApproachDist, portcullisApproachDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
@@ -308,13 +323,15 @@ public class Autonomous {
 			stage++;
 			break;
 		case 2:
-			if(Drive.runDriveDist(.75, .75, portcullisLiftDist, portcullisLiftDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(.75 * getSpeedProfileSpeed(startTime), .75 * getSpeedProfileSpeed(startTime),
+					portcullisLiftDist, portcullisLiftDist, DriveLock.AUTONOMOUS)){
 				Arm.toPosition(Arm.ArmCodes.INSIDE_FRAME);
 				stage++;
 			}
 			break;
 		case 3:
-			if(Drive.runDriveDist(1, 1, portcullisCrossDist, portcullisCrossDist, DriveLock.AUTONOMOUS)){
+			if(Drive.runDriveDist(getSpeedProfileSpeed(startTime), getSpeedProfileSpeed(startTime),
+					portcullisCrossDist, portcullisCrossDist, DriveLock.AUTONOMOUS)){
 				stage++;
 			}
 			break;
