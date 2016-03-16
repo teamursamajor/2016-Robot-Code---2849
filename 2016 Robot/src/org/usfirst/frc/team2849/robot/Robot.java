@@ -32,7 +32,6 @@ public class Robot extends IterativeRobot {
 		vision = new Vision(visionCam, stream);
 		Shooter.intitalizeShooter(vision);
 		stream.addWebcam(new Webcam(1, 320, 240, 5));
-		stream.addWebcam(new Webcam(2, 320, 240, 5));
 		
 	}
 

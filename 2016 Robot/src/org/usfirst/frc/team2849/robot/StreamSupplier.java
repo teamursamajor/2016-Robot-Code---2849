@@ -25,7 +25,7 @@ public class StreamSupplier implements Runnable {
 
 	// Webcam stuff
 	private ArrayList<Webcam> webcams = new ArrayList<Webcam>();
-	private int currentWebcam;
+	private int currentWebcam = 0;
 
 	// Whether thread is running
 	private boolean running;
@@ -61,7 +61,6 @@ public class StreamSupplier implements Runnable {
 	 */
 	public void addWebcam(Webcam webcam) {
 		webcams.add(webcam);
-		currentWebcam = webcams.size() - 1;
 	}
 
 	/**
@@ -70,8 +69,6 @@ public class StreamSupplier implements Runnable {
 	private void nextFeed() {
 		if (currentWebcam < (webcams.size() - 1))
 			currentWebcam++;
-//		if (currentWebcam == 2) Drive.inverse = true;
-//		else Drive.inverse = false;
 	}
 
 	/**
@@ -80,8 +77,6 @@ public class StreamSupplier implements Runnable {
 	private void previousFeed() {
 		if (currentWebcam > 0)
 			currentWebcam--;
-//		if (currentWebcam == 2) Drive.inverse = true;
-//		else Drive.inverse = false;
 	}
 
 	/**
@@ -93,7 +88,6 @@ public class StreamSupplier implements Runnable {
 	 *            Button value for incrementing stream
 	 */
 	public void runStreamChanger(boolean previous, boolean next) {
-		//		System.out.println(previous + ":" + next + ":" + webcams.size());
 		switch (buttonState) {
 		case 0:
 			if (next && !previous) {
@@ -125,9 +119,6 @@ public class StreamSupplier implements Runnable {
 			case 0:
 				try {
 					server = new ServerSocket(5805);
-//					System.out.println("Local Address: "+InetAddress.getLocalHost());
-//					System.out.println("Trying to assign to: " + new InetSocketAddress("roborio-2849-frc.local", port));
-//					server.bind(new InetSocketAddress("roborio-2849-frc.local", port));
 					System.out.println("Opening socket on: " + server.getInetAddress() + ":" + server.getLocalPort());
 				} catch (IOException e) {
 					e.printStackTrace();
