@@ -29,9 +29,11 @@ public class Shooter {
 	private static int shooterStage = 0;
 	private static int autoShooterStage = 0;
 	private static int stage = 0;
-
+	private static int readyStage = 0;
+	
 	// Variable to determine if shooting is done
 	private static boolean shootDone = true;
+	private static boolean readyBallDone = true;
 
 	// Break beam sensors
 	private static DigitalInput intakeBeam = new DigitalInput(0);
@@ -140,6 +142,17 @@ public class Shooter {
 	}
 
 	/**
+	 * Runs the intake backwards to reach the low goals
+	 * 
+	 * @param button
+	 * 			boolean value of button
+	 */
+	public static void runLowGoal(boolean button) {
+		if (button) intakeWheel.set(-1);
+		else intakeWheel.set(0);
+	}
+	
+	/**
 	 * Periodic function to handle advanced shooting
 	 * 
 	 * @return whether shooting is done
@@ -185,11 +198,9 @@ public class Shooter {
 	 * @param rightTrigger
 	 *            Trigger value (runs intake backwards if both pressed)
 	 */
-	public static void runIntake(boolean leftTrigger, boolean rightTrigger) {
+	public static void runIntake(boolean leftTrigger) {
 		if (leftTrigger) {
-			if (rightTrigger) {
-				intakeWheel.set(-1);
-			} else if (!intakeBeam.get()) {
+			if (!intakeBeam.get()) {
 				Robot.xBox.rumbleFor(10);
 				intakeWheel.set(0);
 			} else {
@@ -218,4 +229,36 @@ public class Shooter {
 		return shootBeam.get();
 	}
 
+	/**
+	 * Retreats the ball and winds up the shooter motor
+	 * 
+	 * @return whether the method is complete
+	 */
+	public static boolean runReadyBall() { // because the old name was too long
+		switch(readyStage) {
+		case 0:
+			intakeWheel.set(-1);
+			readyBallDone = false;
+			readyStage++;
+			break;
+		case 1:
+			if (shootBeam.get()) {
+				intakeWheel.set(0);
+				readyStage++;
+			}
+			break;
+		case 2:
+			shooterWheel.set(SHOOT_POWER); // begin charging spirit bomb
+			startTime = System.currentTimeMillis();
+			readyStage++;
+			break;
+		case 3:
+			if (System.currentTimeMillis() - startTime > SPINUP_TIME) readyStage++;
+		case 4:
+			readyBallDone = true;
+			readyStage = 0;
+			break;
+		}
+		return readyBallDone;
+	}
 }

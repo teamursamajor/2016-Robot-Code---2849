@@ -21,6 +21,7 @@ public class Robot extends IterativeRobot {
 
 	// Create objects of various parts of the robot
 	private StreamSupplier stream;
+	private Diagnostics diagnostics;
 	
 	/**
 	 * Run once when the robot is started, initializes various hardware devices
@@ -32,7 +33,7 @@ public class Robot extends IterativeRobot {
 		vision = new Vision(visionCam, stream);
 		Shooter.intitalizeShooter(vision);
 		stream.addWebcam(new Webcam(1, 320, 240, 5));
-		
+		diagnostics = new Diagnostics();
 	}
 
 	public void autonomousInit(){
@@ -62,9 +63,13 @@ public class Robot extends IterativeRobot {
 	 * control of robot
 	 */
 	public void teleopPeriodic() {
+		System.out.println("Current at channel 15 is " + diagnostics.getCurrent(15));
 //		System.out.println("Loop back to teleop took: " + (System.currentTimeMillis() - timer));
 		timer = System.currentTimeMillis();
 
+		// write data from the PD Board to a text file in /home/lvuser
+		diagnostics.writePDBoardData();
+		
 		// Allows climbing
 		Climber.runClimber(xBox.getDPad(XboxController.POV_UP), xBox.getDPad(XboxController.POV_DOWN));
 
@@ -79,10 +84,6 @@ public class Robot extends IterativeRobot {
 		vision.autoAlign(xBox.getButton(XboxController.BUTTON_B));
 		
 		vision.runVision(xBox.getButton(XboxController.BUTTON_X));
-		
-		if (xBox.getButton(XboxController.BUTTON_BACK)) {
-			Arm.printPot();
-		}
 		
 		if (xBox.getButton(XboxController.BUTTON_START)) {
 			vision.alignmentState = 7;
@@ -115,8 +116,10 @@ public class Robot extends IterativeRobot {
 				xBox.getAxisGreaterThan(XboxController.AXIS_RIGHTTRIGGER, .25));
 //
 //		//Sucks in ball / stops the ball being sucked in
-		Shooter.runIntake(xBox.getAxisGreaterThan(XboxController.AXIS_LEFTTRIGGER, .25),
-				xBox.getAxisGreaterThan(XboxController.AXIS_RIGHTTRIGGER, .25));
+		Shooter.runIntake(xBox.getAxisGreaterThan(XboxController.AXIS_LEFTTRIGGER, .25));
+		
+		// low goal, runs while pressed
+		Shooter.runLowGoal(xBox.getButton(XboxController.BUTTON_BACK));
 
 //		System.out.println("Teleop took: " + (System.currentTimeMillis() - timer));
 		timer = System.currentTimeMillis();
@@ -128,5 +131,6 @@ public class Robot extends IterativeRobot {
 	public void disabledInit() {
 		Arm.disablePID();
 	}
+	
 
 }
