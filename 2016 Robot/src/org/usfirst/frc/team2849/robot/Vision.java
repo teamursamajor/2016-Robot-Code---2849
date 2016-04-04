@@ -85,7 +85,7 @@ public class Vision implements Runnable {
 	private final int AREA_THRESH = 800;
 	private final double ANGLE_TO_ENCODER = 24 * Math.PI;
 	private final double CAM_TO_CENTER = 12.5;
-	private final double OPTIMAL_SHOOTING_DIST = 66; // in inches!!!
+	private final double OPTIMAL_SHOOTING_DIST = 92; // in inches!!!
 	//	private final double X_TARGET_MIN = -50;
 	//	private final double X_TARGET_MAX = 50;
 	//	private final double Y_TARGET_MIN = -50;

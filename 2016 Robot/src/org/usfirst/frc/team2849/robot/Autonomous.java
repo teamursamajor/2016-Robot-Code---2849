@@ -61,7 +61,7 @@ public class Autonomous {
 	/**
 	 * Run periodically when crossing the ramparts
 	 */
-	private static final int rampartDist = 500;
+	private static final int rampartDist = 200;
 	public static void runRamparts() {
 		switch (stage) {
 		case 0:
@@ -99,7 +99,7 @@ public class Autonomous {
 	/**
 	 * Run periodically when crossing the moat
 	 */
-	private static final int moatDist = 500;
+	private static final int moatDist = 200;
 	public static void runMoat() {
 		switch (stage) {
 		case 0:
@@ -136,7 +136,7 @@ public class Autonomous {
 	/**
 	 * Run periodically when crossing the rough terrain
 	 */
-	private static final int roughTerrainDist = 500;
+	private static final int roughTerrainDist = 200;
 	public static void runRoughTerrain() {
 		switch (stage) {
 		case 0:
@@ -173,7 +173,7 @@ public class Autonomous {
 	/**
 	 * Run periodically when crossing the rock wall
 	 */
-	private static final int rockWallDist = 500;
+	private static final int rockWallDist = 200;
 	public static void runRockWall() {
 		switch (stage) {
 		case 0:
@@ -210,7 +210,7 @@ public class Autonomous {
 	/**
 	 * Run periodically when crossing the low bar
 	 */
-	private static final int lowBarDist = 500;
+	private static final int lowBarDist = 200;
 	public static void runLowBar() {
 		switch (stage) {
 		case 0:

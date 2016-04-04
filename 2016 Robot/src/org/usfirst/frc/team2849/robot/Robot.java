@@ -89,15 +89,16 @@ public class Robot extends IterativeRobot {
 			Drive.unlock(DriveLock.AUTOALIGN);
 			Drive.unlock(DriveLock.AUTONOMOUS);
 			Drive.unlock(DriveLock.SHOOTER);
+			Drive.resetEnc();
 		}
 		
 		if(xBox.getPOV() == xBox.POV_LEFT && shootToggle){
-			Shooter.SHOOT_POWER -= .05;
+			Shooter.SHOOT_POWER -= .02;
 			shootToggle = false;
 			if(Shooter.SHOOT_POWER < 0) Shooter.SHOOT_POWER = 0;
 			System.out.println("SHOOTER POWER = " + Shooter.SHOOT_POWER);
 		} else if(xBox.getPOV() == xBox.POV_RIGHT && shootToggle){
-			Shooter.SHOOT_POWER += .05;
+			Shooter.SHOOT_POWER += .02;
 			if(Shooter.SHOOT_POWER > 1) Shooter.SHOOT_POWER = 1;
 			shootToggle = false;
 			System.out.println("SHOOTER POWER = " + Shooter.SHOOT_POWER);

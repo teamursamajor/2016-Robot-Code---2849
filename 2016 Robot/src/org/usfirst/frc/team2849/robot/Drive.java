@@ -31,7 +31,7 @@ public class Drive {
 	private static boolean shiftState = false; // high is false, low is true
 	private static int numShifts = 0;
 	private static final int MAX_SHIFTS = 25;
-	
+
 	// return state of runDriveDist
 	private static boolean toReturn = false;
 
@@ -42,12 +42,12 @@ public class Drive {
 	private static int shiftingState = 0;
 
 	// Encoders to measure drive motor distance
-	private static Encoder lEnc = new Encoder(2, 3);
-	private static Encoder rEnc = new Encoder(4, 5);
+	public static Encoder lEnc = new Encoder(2, 3);
+	public static Encoder rEnc = new Encoder(4, 5);
 
 	// Ratio to enable correct distance whether in high or low gear
 	private static double LOW_TO_HIGH_RATIO = 2.56;
-	
+
 	// Inverse driving for backwards driving
 	public static boolean inverse;
 
@@ -59,15 +59,14 @@ public class Drive {
 		rEnc.setDistancePerPulse(1);
 	}
 
+	//ding dong the nate is dead
 	/**
 	 * Gets the distance in inches of the left encoder
 	 * 
 	 * @return Number of inches moved since reset
 	 */
 	public static double getLEnc() {
-		if (shiftState == true)
-			return 0.16702391225 * lEnc.getDistance();
-		return 0.16702391225 * lEnc.getDistance() * LOW_TO_HIGH_RATIO;
+		return 0.14183089502 * lEnc.getDistance();
 	}
 
 	/**
@@ -76,9 +75,7 @@ public class Drive {
 	 * @return Number of inches moved since reset
 	 */
 	public static double getREnc() {
-		if (shiftState == true)
-			return -0.0677124478 * rEnc.getDistance();
-		return -0.0677124478 * rEnc.getDistance() * LOW_TO_HIGH_RATIO;
+		return -0.06924656277 * rEnc.getDistance();
 	}
 
 	/**
@@ -137,7 +134,8 @@ public class Drive {
 	 * @return the current state of the supershifter
 	 */
 	public static boolean shiftGear() {
-		if(numShifts >= MAX_SHIFTS) return shiftState;
+		if (numShifts >= MAX_SHIFTS)
+			return shiftState;
 		shifter.set(!shifter.get());
 		shiftState = shifter.get();
 		System.out.println("Shifts left: " + (MAX_SHIFTS - ++numShifts));
@@ -152,10 +150,15 @@ public class Drive {
 	 *            True - shifts to low gear
 	 */
 	public static void shiftGear(boolean shiftToLow) {
-		if(numShifts >= MAX_SHIFTS) return;
-		System.out.println("Shifts left: " + (MAX_SHIFTS - ++numShifts));
-		shifter.set(shiftToLow);
-		shiftState = shiftToLow;
+		if (numShifts >= MAX_SHIFTS)
+			return;
+		if (MAX_SHIFTS - numShifts == 0)
+			shifter.set(false);
+		else {
+			System.out.println("Shifts left: " + (MAX_SHIFTS - ++numShifts));
+			shifter.set(shiftToLow);
+			shiftState = shiftToLow;
+		}
 	}
 
 	/**
@@ -190,7 +193,8 @@ public class Drive {
 	}
 
 	/**
-	 * Periodic function to handle driving -- scales the speed to fall from -1*MAXSPEED to MAXSPEED
+	 * Periodic function to handle driving -- scales the speed to fall from
+	 * -1*MAXSPEED to MAXSPEED
 	 * 
 	 * @param leftSpeed
 	 *            speed left drive should be run <br>
@@ -200,7 +204,7 @@ public class Drive {
 	 *            Precondition: between -1 and 1 inclusive
 	 */
 	public static void runDrive(double leftSpeed, double rightSpeed, DriveLock lockIn) {
-
+		
 		// Precondition check
 		if (Math.abs(leftSpeed) > 1 || Math.abs(rightSpeed) > 1) {
 			try {
@@ -209,15 +213,15 @@ public class Drive {
 				e.printStackTrace();
 			}
 		}
-		
-		if(inverse) {
+
+		if (inverse) {
 			double temp = leftSpeed;
 			leftSpeed = -rightSpeed;
 			rightSpeed = -temp;
 		}
 
 		int drivePow = 1;
-		
+
 		// Locking check
 		if (lock == DriveLock.UNLOCKED || lock == lockIn) {
 			leftSpeed *= -MAX_SPEED;
@@ -252,18 +256,21 @@ public class Drive {
 	 * Should be run in a loop
 	 * 
 	 * @param leftSpeed
-	 *            speed left motor should be run at
-	 *            Precondition: between -1 and 1 inclusive
+	 *            speed left motor should be run at Precondition: between -1 and
+	 *            1 inclusive
 	 * @param rightSpeed
-	 *            speed right motor should be run at
-	 *            Precondition: between -1 and 1 inclusive
+	 *            speed right motor should be run at Precondition: between -1
+	 *            and 1 inclusive
 	 * @param leftDistance
 	 *            distance left tread should travel in inches
 	 * @param rightDistance
 	 *            distance right tread should travel in inches
 	 * @return whether the robot has gone the correct distance
 	 */
-	public static boolean runDriveDist(double leftSpeed, double rightSpeed, double leftDistance, double rightDistance, DriveLock lockIn) {
+	public static boolean runDriveDist(double leftSpeed, double rightSpeed, double leftDistance, double rightDistance,
+			DriveLock lockIn) {
+
+		leftSpeed *= .90;
 		
 		// Precondition check
 		if (Math.abs(leftSpeed) > 1 || Math.abs(rightSpeed) > 1) {
@@ -281,20 +288,20 @@ public class Drive {
 			driveDistState++;
 			break;
 		case 1:
-//			System.out.println(getLEnc() + " : " + leftDistance);
-//			System.out.println(getREnc() + " : " + rightDistance);
+			//			System.out.println(getLEnc() + " : " + leftDistance);
+			//			System.out.println(getREnc() + " : " + rightDistance);
 			if (Math.abs(getLEnc()) >= Math.abs(leftDistance) || Math.abs(getREnc()) >= Math.abs(rightDistance)) {
 				rightSpeed = 0;
 				leftSpeed = 0;
-				driveDistState=0;
+				driveDistState = 0;
 				toReturn = true;
 			}
-			
-//			System.out.println("Left speed: " + leftSpeed + " : Right speed: " + rightSpeed);
+
+			//			System.out.println("Left speed: " + leftSpeed + " : Right speed: " + rightSpeed);
 			runDrive(leftSpeed, rightSpeed, lockIn);
 			break;
 		}
-		
+
 		return toReturn;
 	}
 
@@ -304,7 +311,7 @@ public class Drive {
 	 * @author teamursamajor
 	 */
 	public enum DriveLock {
-		SHOOTER, AUTOALIGN , AUTONOMOUS, UNLOCKED
+		SHOOTER, AUTOALIGN, AUTONOMOUS, UNLOCKED
 	};
 
 }

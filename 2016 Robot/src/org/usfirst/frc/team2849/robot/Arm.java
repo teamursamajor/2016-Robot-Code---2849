@@ -25,7 +25,7 @@ public class Arm {
 	private static PIDController pidControl;
 
 	// PID Controller variables
-	private static final double PROPORTIONAL = .02;
+	private static final double PROPORTIONAL = .01;
 	private static final double INTEGRAL = 0;
 	private static final double DERIVATIVE = 0;
 
@@ -86,7 +86,7 @@ public class Arm {
 				pidControl.setSetpoint(ArmCodes.POSTITIONS[armPos]);
 				armState++;
 			} else if (armUp) {
-				pidControl.setPID(.02, 0, 0);
+				pidControl.setPID(.025, 0, 0);
 				armPos++;
 				if (armPos > ArmCodes.POSTITIONS.length - 1)
 					armPos = ArmCodes.POSTITIONS.length - 1;
@@ -141,10 +141,10 @@ public class Arm {
 	 * @author teamursamajor
 	 */
 	public static class ArmCodes {
-		public static final double FLAT = 10;
+		public static final double FLAT = 5;
 		public static final double PORTCULLIS = 0;
-		public static final double PORTCULLIS_UP = 28;
-		public static final double INSIDE_FRAME = 47;
+		public static final double PORTCULLIS_UP = 30;
+		public static final double INSIDE_FRAME = 50;
 		public static final double[] POSTITIONS = { PORTCULLIS, FLAT, PORTCULLIS_UP, INSIDE_FRAME };
 	};
 }

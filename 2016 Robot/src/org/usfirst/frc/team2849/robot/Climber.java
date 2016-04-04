@@ -23,14 +23,14 @@ public class Climber {
 	 */
 	public static void runClimber(boolean up, boolean down) {
 		if (up) {
-			tapeMeasure.set(1);
+			tapeMeasure.set(.3);
 			//winch.set(1); <-- Not running winch when going up
 		} else if (down) {
-			tapeMeasure.set(-1);
-			winch.set(-1);
+			tapeMeasure.set(-.2);
+//			winch.set(-1);
 		} else {
 			tapeMeasure.set(0);
-			winch.set(0);
+//			winch.set(0);
 		}
 	}
 }
