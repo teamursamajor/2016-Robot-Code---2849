@@ -1,12 +1,18 @@
 package application;
 
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import javax.imageio.ImageIO;
+
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -21,10 +27,17 @@ public class PictureClient implements Runnable {
 	private byte[] byteArray;
 	private int port;
 	private long lastTime = 0;
+	private BufferedImage overlay;
+	Graphics g;
 
 	public PictureClient(ImageView image, int port) {
 		imageViewer = image;
 		this.port = port;
+		try {
+			overlay = ImageIO.read(new File("resc\\crosshairs.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -59,7 +72,7 @@ public class PictureClient implements Runnable {
 //					System.out.println("Trying for picture: " + in.available());
 					if (in.available() > 0) {
 						//check return before setting the image
-						imageViewer.setImage(getImageFromBytes(in));
+						imageViewer.setImage(overlayCrossHairs(getImageFromBytes(in)));
 						lastTime = System.currentTimeMillis();
 					} else {
 //						System.out.println("No image to get: " + (System.currentTimeMillis()-lastTime));
@@ -81,12 +94,19 @@ public class PictureClient implements Runnable {
 		}
 	}
 
-	public Image getImageFromBytes(DataInputStream stream) throws IOException {
+	public BufferedImage getImageFromBytes(DataInputStream stream) throws IOException {
 		//put in a try/catch, return null if it has an exception
 		//which it will if it timesout
 		byte[] bytes = new byte[stream.readInt()];
 		stream.readFully(bytes);
-		return new Image(new ByteArrayInputStream(bytes));
+		return ImageIO.read(new ByteArrayInputStream(bytes));
+	}
+	
+	public Image overlayCrossHairs(BufferedImage img) {
+		g = img.getGraphics();
+		//g.drawImage(img, 0, 0, null);
+		g.drawImage(overlay, 258, 110, null);
+		return SwingFXUtils.toFXImage(img, null);
 	}
 
 	public void stop() {

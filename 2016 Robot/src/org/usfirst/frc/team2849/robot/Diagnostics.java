@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -17,8 +18,8 @@ public class Diagnostics {
 	private long timeStamp;
 	private Date date;
 	private File diagnosticFile;
-	private String logHeader = "=============================\n=============================\n=============================";
-	private String header = "-----------------------------";
+	private String logHeader = "=======================================================================================";
+	private String header = "------------------------------------------";
 	private int counter = 0;
 
 	public Diagnostics() {
@@ -31,9 +32,22 @@ public class Diagnostics {
 		pdBoard = new PowerDistributionPanel();
 		timeStamp = System.currentTimeMillis();
 		writeDiagnostic(logHeader);
-		writeDiagnostic(date.toString() + " @ " + (System.currentTimeMillis() - timeStamp));
+		writeDiagnostic(date.toString() + " @ " + (System.currentTimeMillis() - timeStamp) + " milliseconds");
 	}
 
+	public void logTeleop() {
+		writeDiagnostic("Enabled teleop @ " + (System.currentTimeMillis() - timeStamp) + " milliseconds");
+	}
+	
+	public void logAutonomous() {
+		writeDiagnostic("Enabled autonomous @ " + (System.currentTimeMillis() - timeStamp) + " milliseconds");
+	}
+	
+	public void logDisabled() {
+		writeDiagnostic("Disabled @ " + (System.currentTimeMillis() - timeStamp) + " milliseconds");
+		writeDiagnostic(logHeader);
+	}
+	
 	public void nextFile() {
 		counter++;
 		diagnosticFile = new File("/home/lvuser/" + date.toString() + "-" + counter + ".txt");
@@ -67,6 +81,11 @@ public class Diagnostics {
 			return true;
 		else
 			return false;
+	}
+	
+	public void writeTimeStamp() {
+		writeDiagnostic(header);
+		writeDiagnostic(timeStamp);
 	}
 
 	public void writePDBoardData() {

@@ -1,5 +1,9 @@
 package org.usfirst.frc.team2849.robot;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import org.usfirst.frc.team2849.robot.Drive.DriveLock;
 import org.usfirst.frc.team2849.robot.Vision.AutoAlignCodes;
 
@@ -12,12 +16,15 @@ import edu.wpi.first.wpilibj.Talon;
  * @author teamursamajor
  */
 public class Shooter {
-	
+
 	private static final int SPINUP_TIME = 1000;
 	private static final int SHOOT_TIME = 1000;
 
-	public static double SHOOT_POWER = .9;
-	
+	public static double SHOOT_POWER = 0.905;
+	private static double highestCurrent = 0.0;
+	private static double current;
+	private static double highestIndex = 0.0;
+
 	// Motors for shooter
 	private static Talon intakeWheel = new Talon(4);
 	private static Talon shooterWheel = new Talon(5);
@@ -30,10 +37,12 @@ public class Shooter {
 	private static int autoShooterStage = 0;
 	private static int stage = 0;
 	private static int readyStage = 0;
-	
+	private static int toIgnore = 20;
+
 	// Variable to determine if shooting is done
 	private static boolean shootDone = true;
 	private static boolean readyBallDone = true;
+	private static boolean toPrint = false;
 
 	// Break beam sensors
 	private static DigitalInput intakeBeam = new DigitalInput(0);
@@ -46,14 +55,19 @@ public class Shooter {
 	// Vision object
 	private static Vision vision;
 
+	private static List<Double> currents = new ArrayList<Double>();
+
+	private static Diagnostics diag;
+
 	/**
 	 * Initialize shooter object
 	 * 
 	 * @param vision
 	 *            Vision object
 	 */
-	public static void intitalizeShooter(Vision visionIn) {
+	public static void intitalizeShooter(Vision visionIn, Diagnostics d) {
 		vision = visionIn;
+		diag = d;
 	}
 
 	/**
@@ -112,7 +126,13 @@ public class Shooter {
 			}
 			break;
 		case 2:
-			shooterWheel.set(SHOOT_POWER); // speed up shooter
+			if (diag.getVoltage() < 12) {
+				shooterWheel.set(SHOOT_POWER + .04); // speed up shooter
+			} else if (diag.getVoltage() < 12.3) {
+				shooterWheel.set(SHOOT_POWER + .02);
+			} else {
+				shooterWheel.set(SHOOT_POWER);
+			}
 			startTime = System.currentTimeMillis();
 			shooterStage++;
 			break;
@@ -145,33 +165,63 @@ public class Shooter {
 	 * Runs the intake backwards to reach the low goals
 	 * 
 	 * @param button
-	 * 			boolean value of button
+	 *            boolean value of button
 	 */
 	public static void runLowGoal(boolean button) {
-		if (button) intakeWheel.set(-1);
-		else intakeWheel.set(0);
+		if (button) {
+			//			if (toIgnore != 0) {
+			//				toIgnore--;
+			//			} else {
+			current = diag.getCurrent(12);
+			currents.add(current);
+			if (current > highestCurrent) {
+				highestCurrent = current;
+				highestIndex = (double) currents.size();
+				//				}
+			}
+			intakeWheel.set(-1);
+			shooterWheel.set(-.75);
+			toPrint = true;
+		} else if (shootDone) {
+//			intakeWheel.set(0);
+			shooterWheel.set(0);
+			if (toPrint) {
+				currents.forEach(d -> SHOOT_POWER += d);
+				SHOOT_POWER /= currents.size();
+				System.out.println("Average current is " + SHOOT_POWER);
+				System.out.println("Peak current is " + highestCurrent);
+				System.out.println("Peak occurred at " + ((highestIndex / currents.size()) * 100) + "% through run");
+				diag.writeTimeStamp();
+				diag.writeDiagnostic(currents.toString());
+				highestIndex = 0;
+				highestCurrent = 0.0;
+				toIgnore = 20;
+				toPrint = false;
+				currents.clear();
+			}
+		}
 	}
-	
+
 	/**
 	 * Periodic function to handle advanced shooting
 	 * 
 	 * @return whether shooting is done
 	 */
-	
+
 	public static boolean assistedShoot(boolean button) { // NEEDS TESTING TO TIME CORRECTLY
 		switch (autoShooterStage) {
 		case 0:
-			if(button){
+			if (button) {
 				shootDone = false;
 				autoShooterStage++;
 			}
 			break;
 		case 1:
 			AutoAlignCodes algn = vision.autoAlign(true);
-			if(algn == AutoAlignCodes.ALIGNED){
+			if (algn == AutoAlignCodes.ALIGNED) {
 				Drive.lock(DriveLock.SHOOTER);
 				autoShooterStage++;
-			} else if(algn == AutoAlignCodes.FAILED){
+			} else if (algn == AutoAlignCodes.FAILED) {
 				autoShooterStage = 0;
 				Drive.unlock(DriveLock.SHOOTER);
 				shootDone = true;
@@ -198,6 +248,7 @@ public class Shooter {
 	 * @param rightTrigger
 	 *            Trigger value (runs intake backwards if both pressed)
 	 */
+	static double hnum = -Double.MIN_VALUE;
 	public static void runIntake(boolean leftTrigger) {
 		if (leftTrigger) {
 			if (!intakeBeam.get()) {
@@ -205,9 +256,12 @@ public class Shooter {
 				intakeWheel.set(0);
 			} else {
 				intakeWheel.set(1);
+				if(diag.getCurrent(12) > hnum) hnum = diag.getCurrent(12);
+				System.out.println(hnum);
 			}
 		} else if (shootDone) {
 			intakeWheel.set(0);
+			hnum = -Double.MIN_VALUE;
 		}
 	}
 
@@ -222,7 +276,7 @@ public class Shooter {
 
 	/**
 	 * Returns the shooter beam
-	 *  
+	 * 
 	 * @return whether shooter beam tripped
 	 */
 	public static boolean getShooterBeam() {
@@ -234,8 +288,9 @@ public class Shooter {
 	 * 
 	 * @return whether the method is complete
 	 */
+
 	public static boolean runReadyBall() { // because the old name was too long
-		switch(readyStage) {
+		switch (readyStage) {
 		case 0:
 			intakeWheel.set(-1);
 			readyBallDone = false;
@@ -245,15 +300,22 @@ public class Shooter {
 			if (shootBeam.get()) {
 				intakeWheel.set(0);
 				readyStage++;
+			} else {
+//				currents.add(diag.getCurrent(15));
 			}
 			break;
 		case 2:
-			shooterWheel.set(SHOOT_POWER); // begin charging spirit bomb
+//			currents.forEach(d -> SHOOT_POWER += d);
+//			SHOOT_POWER /= currents.size();
+//			currents.clear();
+//			shooterWheel.set(SHOOT_POWER); // begin charging spirit bomb
+			shooterWheel.set(1);
 			startTime = System.currentTimeMillis();
 			readyStage++;
 			break;
 		case 3:
-			if (System.currentTimeMillis() - startTime > SPINUP_TIME) readyStage++;
+			if (System.currentTimeMillis() - startTime > SPINUP_TIME)
+				readyStage++;
 		case 4:
 			readyBallDone = true;
 			readyStage = 0;

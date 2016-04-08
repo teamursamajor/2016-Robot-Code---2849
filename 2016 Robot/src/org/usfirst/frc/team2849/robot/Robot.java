@@ -31,9 +31,9 @@ public class Robot extends IterativeRobot {
 		stream = new StreamSupplier(8500);
 		Webcam visionCam = new Webcam(0, 640, 480, 5);
 		vision = new Vision(visionCam, stream);
-		Shooter.intitalizeShooter(vision);
 		stream.addWebcam(new Webcam(1, 320, 240, 5));
 		diagnostics = new Diagnostics();
+		Shooter.intitalizeShooter(vision, diagnostics);
 	}
 
 	public void autonomousInit(){
@@ -46,6 +46,7 @@ public class Robot extends IterativeRobot {
 	public void autonomousPeriodic() {
 		Autonomous.runAutonomous();
 		Arm.enablePID();
+		diagnostics.logAutonomous();
 	}
 
 	/**
@@ -56,6 +57,7 @@ public class Robot extends IterativeRobot {
 		Arm.enablePID();
 		timer = System.currentTimeMillis();
 		Drive.unlock(DriveLock.AUTONOMOUS);
+		diagnostics.logTeleop();
 	}
 
 	/**
@@ -63,12 +65,11 @@ public class Robot extends IterativeRobot {
 	 * control of robot
 	 */
 	public void teleopPeriodic() {
-		System.out.println("Current at channel 15 is " + diagnostics.getCurrent(15));
 //		System.out.println("Loop back to teleop took: " + (System.currentTimeMillis() - timer));
 		timer = System.currentTimeMillis();
 
 		// write data from the PD Board to a text file in /home/lvuser
-		diagnostics.writePDBoardData();
+//		diagnostics.writePDBoardData();
 		
 		// Allows climbing
 		Climber.runClimber(xBox.getDPad(XboxController.POV_UP), xBox.getDPad(XboxController.POV_DOWN));
@@ -83,14 +84,16 @@ public class Robot extends IterativeRobot {
 		// Runs vision
 		vision.autoAlign(xBox.getButton(XboxController.BUTTON_B));
 		
-		vision.runVision(xBox.getButton(XboxController.BUTTON_X));
+		vision.autoDistance(xBox.getButton(XboxController.BUTTON_X));
 		
 		if (xBox.getButton(XboxController.BUTTON_START)) {
 			vision.alignmentState = 7;
+			vision.distanceState = 4;
 			Drive.unlock(DriveLock.AUTOALIGN);
 			Drive.unlock(DriveLock.AUTONOMOUS);
 			Drive.unlock(DriveLock.SHOOTER);
 			Drive.resetEnc();
+			Arm.printEncoder();
 		}
 		
 		if(xBox.getPOV() == xBox.POV_LEFT && shootToggle){
@@ -130,6 +133,7 @@ public class Robot extends IterativeRobot {
 	 */
 	public void disabledInit() {
 		Arm.disablePID();
+		diagnostics.logDisabled();
 	}
 	
 

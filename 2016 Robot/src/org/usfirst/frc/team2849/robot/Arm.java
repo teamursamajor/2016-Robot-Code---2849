@@ -1,6 +1,7 @@
 package org.usfirst.frc.team2849.robot;
 
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.Talon;
@@ -19,33 +20,35 @@ public class Arm {
 	private static Talon armRight = new Talon(3);
 
 	// Potentiometer to determine the position of the arm
-	private static AnalogPotentiometer pot = new AnalogPotentiometer(3, 360, -300);
+//	private static AnalogPotentiometer pot = new AnalogPotentiometer(3, 360, -300);
+	private static Encoder armEncoder = new Encoder(6,7);
 
 	// PID Controller to handle the movement of the arm
 	private static PIDController pidControl;
 
 	// PID Controller variables
-	private static final double PROPORTIONAL = .01;
+	private static final double PROPORTIONAL = .001;
 	private static final double INTEGRAL = 0;
 	private static final double DERIVATIVE = 0;
 
 	// Position arm should be moving to
-	private static int armPos = 1;
+	private static int armPos = 3;
 
 	// Variable to handle button press state machine
 	private static int armState = 0;
 
 	// Initialize the PID Controller
 	static {
-		pidControl = new PIDController(PROPORTIONAL, INTEGRAL, DERIVATIVE, pot, new PIDOutput() {
+		pidControl = new PIDController(PROPORTIONAL, INTEGRAL, DERIVATIVE, armEncoder, new PIDOutput() {
 			@Override
 			public void pidWrite(double output) {
 //				System.out.println("PID is outputting: " + output);
-				armLeft.set(-output);
-				armRight.set(-output);
+				armLeft.set(output);
+				armRight.set(output);
 			}
 		});
 		pidControl.setAbsoluteTolerance(.1);
+		armEncoder.reset();
 	}
 
 	/**
@@ -78,7 +81,7 @@ public class Arm {
 		switch (armState) {
 		case 0:
 			if (armDown) {
-				pidControl.setPID(.04, 0, 0);
+				pidControl.setPID(.005, 0, 0);
 				armPos--;
 				if (armPos <= 0) {
 					armPos = 0;
@@ -86,7 +89,7 @@ public class Arm {
 				pidControl.setSetpoint(ArmCodes.POSTITIONS[armPos]);
 				armState++;
 			} else if (armUp) {
-				pidControl.setPID(.025, 0, 0);
+				pidControl.setPID(.008, 0, 0);
 				armPos++;
 				if (armPos > ArmCodes.POSTITIONS.length - 1)
 					armPos = ArmCodes.POSTITIONS.length - 1;
@@ -131,8 +134,12 @@ public class Arm {
 	/**
 	 * Prints debug information about the potentiometer
 	 */
-	public static void printPot() {
-		System.out.println("Pot is at: " + pot.get());
+//	public static void printPot() {
+//		System.out.println("Pot is at: " + pot.get());
+//	}
+	
+	public static void printEncoder() {
+		System.out.println("Encoder is at: " + armEncoder.get());
 	}
 
 	/**
@@ -141,10 +148,14 @@ public class Arm {
 	 * @author teamursamajor
 	 */
 	public static class ArmCodes {
-		public static final double FLAT = 5;
-		public static final double PORTCULLIS = 0;
-		public static final double PORTCULLIS_UP = 30;
-		public static final double INSIDE_FRAME = 50;
+//		public static final double FLAT = 5;
+//		public static final double PORTCULLIS = 0;
+//		public static final double PORTCULLIS_UP = 30;
+//		public static final double INSIDE_FRAME = 50;
+		public static final double FLAT = 130;
+		public static final double PORTCULLIS = 160;
+		public static final double PORTCULLIS_UP = 54;
+		public static final double INSIDE_FRAME = -15;
 		public static final double[] POSTITIONS = { PORTCULLIS, FLAT, PORTCULLIS_UP, INSIDE_FRAME };
 	};
 }

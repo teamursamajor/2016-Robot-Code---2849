@@ -70,6 +70,7 @@ public class Vision implements Runnable {
 	// State machine variables
 	private int visionState;
 	public int alignmentState;
+	public int distanceState;
 
 	// Timing of vision 
 	private long wholeTime;
@@ -83,7 +84,7 @@ public class Vision implements Runnable {
 
 	// Shooting threshold stuff
 	private final int AREA_THRESH = 800;
-	private final double ANGLE_TO_ENCODER = 24 * Math.PI;
+	private final double ANGLE_TO_ENCODER = 26 * Math.PI;
 	private final double CAM_TO_CENTER = 12.5;
 	private final double OPTIMAL_SHOOTING_DIST = 92; // in inches!!!
 	//	private final double X_TARGET_MIN = -50;
@@ -92,7 +93,7 @@ public class Vision implements Runnable {
 	//	private final double Y_TARGET_MAX = 50;
 	private final double MAX_DISTANCE = 4;
 //	private final double MAX_ANGLE = 10;
-	private final double MAX_ANGLE = 8;
+	private final double MAX_ANGLE = 5;
 	private final double X_OFFSET = 0;
 
 	private int runCounter = 0;
@@ -354,13 +355,14 @@ public class Vision implements Runnable {
 					}
 				} else {
 					turnAngle = findAngle(centerDist.x, centerDist.y);
-					alignmentState=4;
+					alignmentState++;
+					//alignmentState=4;
 				}
 			}
 			break;
 		case 3:
 			// Turning the robot towards the goal
-			if (Drive.runDriveDist(-.35 * Math.signum(centerDist.x), .35 * Math.signum(centerDist.x),
+			if (Drive.runDriveDist(-.4 * Math.signum(centerDist.x), .4 * Math.signum(centerDist.x),
 					-convertAngleToEncoder(turnAngle), convertAngleToEncoder(turnAngle), DriveLock.AUTOALIGN)) {
 				alignmentState++;
 			}
@@ -370,8 +372,8 @@ public class Vision implements Runnable {
 			if (Drive.runDriveDist(-.9 * Math.signum(distToGo), -.9 * Math.signum(distToGo), distToGo, distToGo,
 					DriveLock.AUTOALIGN)) {
 				System.out.println(distToGo);
-				alignmentState=7;
-				sleep(500);
+				alignmentState++;
+				sleep(1);
 			}
 			break;
 		case 5:
@@ -379,28 +381,32 @@ public class Vision implements Runnable {
 			alignmentState++;
 			break;
 		case 6:
-			if (done) {
-				distToGo = findDistance(centerDist.y) - OPTIMAL_SHOOTING_DIST;
-				turnAngle = findAngle(centerDist.x, centerDist.y);
-
-				if (!Double.isNaN(centerDist.x) && !Double.isNaN(centerDist.y)) { // check if not null and in range for shooting
-					if (Math.abs(turnAngle) <= MAX_ANGLE && Math.abs(distToGo) <= MAX_DISTANCE) {
-						alignmentState++;
-					} else { // run again
-						alignmentState = 2;
-					}
-				} else {
-					failCounter++;
-					if (failCounter >= 2) {
-//						Robot.xBox.rumbleFor(250);
-						alignmentState = 0;
-						aligned = AutoAlignCodes.FAILED;
-						Drive.unlock(DriveLock.AUTOALIGN);
-					} else {
-						alignmentState = 5;
-					}
-				}
+			if (Drive.runDriveDist(-.4 * Math.signum(centerDist.x), .4 * Math.signum(centerDist.x),
+					-convertAngleToEncoder(turnAngle), convertAngleToEncoder(turnAngle), DriveLock.AUTOALIGN)) {
+				alignmentState++;
 			}
+//			if (done) {
+//				distToGo = findDistance(centerDist.y) - OPTIMAL_SHOOTING_DIST;
+//				turnAngle = findAngle(centerDist.x, centerDist.y);
+//
+//				if (!Double.isNaN(centerDist.x) && !Double.isNaN(centerDist.y)) { // check if not null and in range for shooting
+//					if (Math.abs(turnAngle) <= MAX_ANGLE && Math.abs(distToGo) <= MAX_DISTANCE) {
+//						alignmentState++;
+//					} else { // run again
+//						alignmentState = 2;
+//					}
+//				} else {
+//					failCounter++;
+//					if (failCounter >= 2) {
+////						Robot.xBox.rumbleFor(250);
+//						alignmentState = 0;
+//						aligned = AutoAlignCodes.FAILED;
+//						Drive.unlock(DriveLock.AUTOALIGN);
+//					} else {
+//						alignmentState = 5;
+//					}
+//				}
+//			}
 			break;
 		case 7:
 			alignmentState = 0;
@@ -409,6 +415,53 @@ public class Vision implements Runnable {
 			break;
 		}
 		return aligned;
+	}
+	
+	public void autoDistance(boolean button) {
+		switch (distanceState) {
+		case 0:
+			if (button) {
+				failCounter = 0;
+				distanceState++;
+				Drive.shiftGear(true);
+			}
+			break;
+		case 1:
+			Drive.lock(DriveLock.AUTOALIGN);
+			startVision();
+			distanceState++;
+			break;
+		case 2:
+			if (done) {
+				if (Double.isNaN(centerDist.x) && Double.isNaN(centerDist.y)) { // if vision failed
+					// turn clockwise, do vision again, if it fails a second time, rumble and exit
+					failCounter++;
+					if (failCounter >= 2) {
+//						Robot.xBox.rumbleFor(250);
+						distanceState = 0;
+						aligned = AutoAlignCodes.FAILED;
+						Drive.unlock(DriveLock.AUTOALIGN);
+					} else if (Drive.runDriveDist(.5, -.5, 10, -10, DriveLock.AUTOALIGN)) {
+						distanceState = 1;
+					}
+				} else {
+					distanceState++;
+				}
+			}
+			break;
+		case 3:
+			double distToGo = findDistance(centerDist.y) - OPTIMAL_SHOOTING_DIST;
+			if (Drive.runDriveDist(-.9 * Math.signum(distToGo), -.9 * Math.signum(distToGo), distToGo, distToGo,
+					DriveLock.AUTOALIGN)) {
+				System.out.println(distToGo);
+				distanceState++;
+				sleep(1);
+			}
+		case 4:
+			distanceState = 0;
+			Drive.unlock(DriveLock.AUTOALIGN);
+			break;
+		}
 	}
 
 	/**
@@ -450,7 +503,10 @@ public class Vision implements Runnable {
 	 * @return Angle the angle
 	 */
 	public double findAngle(double xDifference, double yDifference) {
-
+		System.out.println("xD" + xDifference + " ang: " + xDifference * .08);
+		return xDifference * .08;
+		//Below is the code for the offset camera.
+		/*
 		double absXDifference = Math.abs(xDifference);
 		double camAngle = Math.toRadians((30.0 / visionCam.getWidth()) * absXDifference) + X_OFFSET;
 		double distance = findDistance(yDifference);
@@ -480,6 +536,7 @@ public class Vision implements Runnable {
 //			}
 		}
 		return -Math.toDegrees(Math.atan(IT/distance));
+		*/
 	}
 
 	public void sleep(int timeToSleep) {
